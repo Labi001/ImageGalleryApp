@@ -15,6 +15,4 @@ data class UnsplashImage(
     val description: String?,
 
 
-
-
 )

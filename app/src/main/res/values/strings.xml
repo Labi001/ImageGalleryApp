@@ -2,4 +2,5 @@
     <string name="app_name">ImageGalleryApp</string>
     <string name="search_icon">Search Icon</string>
     <string name="back_icon">Back Icon</string>
+    <string name="icon_favorite">Icon Favorite</string>
 </resources>

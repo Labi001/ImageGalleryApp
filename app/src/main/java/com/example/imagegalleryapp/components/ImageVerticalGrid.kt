@@ -6,23 +6,25 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import androidx.paging.compose.LazyPagingItems
 import com.example.imagegalleryapp.models.UnsplashImage
 
 
 @Composable
 fun ImageVerticalGrid(
     modifier: Modifier = Modifier,
-    images:List<UnsplashImage?>,
-    onImageClick:(String) -> Unit,
-    onImageDragStart:(UnsplashImage?) ->Unit,
-    onImageDragEnd:() ->Unit
+    images: LazyPagingItems<UnsplashImage>,
+    onImageClick: (String) -> Unit,
+    onImageDragStart: (UnsplashImage?) -> Unit,
+    onImageDragEnd: () -> Unit,
+    onToggleFavoriteStatus: (UnsplashImage) -> Unit,
+    favoriteImageIds: List<String>
 ){
-    
+
     LazyVerticalStaggeredGrid(
         modifier = modifier,
         columns = StaggeredGridCells.Adaptive(120.dp),
@@ -31,7 +33,9 @@ fun ImageVerticalGrid(
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
 
-        items(images){image->
+        items(count = images.itemCount){ index ->
+
+            val image = images[index]
 
             ImageCard(image = image,
                 modifier = Modifier
@@ -46,11 +50,19 @@ fun ImageVerticalGrid(
 
                         )
 
-                    })
+                    },
+                onToggleFavoriteStatus = {
+
+                    image?.let{onToggleFavoriteStatus(it)}
+                },
+                isFavorite = favoriteImageIds.contains(image?.id)
+            )
 
         }
-        
+
+
+
     }
-    
-    
+
+
 }

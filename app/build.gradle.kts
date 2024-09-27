@@ -1,4 +1,4 @@
-import java.util.Properties
+
 
 plugins {
     alias(libs.plugins.android.application)
@@ -11,7 +11,7 @@ plugins {
 
 android {
     namespace = "com.example.imagegalleryapp"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.imagegalleryapp"
@@ -25,9 +25,7 @@ android {
             useSupportLibrary = true
         }
 
-        val properties = Properties()
-        properties.load(project.rootProject.file("local.properties").inputStream())
-        buildConfigField("String","UNSPLASH_API_KEY",properties.getProperty("UNSPLASH_API_KEY"))
+
     }
 
     buildTypes {

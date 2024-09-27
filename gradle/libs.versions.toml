@@ -1,6 +1,6 @@
 [versions]
-agp = "8.5.1"
-kotlin = "2.0.0"
+agp = "8.5.2"
+kotlin = "2.0.10"
 coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -9,7 +9,7 @@ lifecycleRuntimeKtx = "2.8.4"
 activityCompose = "1.9.1"
 composeBom = "2024.06.00"
 hilt = "2.51.1"
-navigationCompose = "2.8.0-beta06"
+navigationCompose = "2.8.0-rc01"
 serialization = "1.6.3"
 hiltCompiler = "1.2.0"
 androidxHilt = "1.2.0"
@@ -20,9 +20,10 @@ kspVersion = "2.0.0-1.0.21"
 roomVersion = "2.6.1"
 cloudy = "0.2.0"
 lifecycleVersion = "2.8.4"
-paginVersion = "3.3.1"
+paginVersion = "3.3.2"
 kotlinSVersion = "1.0.0"
 okhttpVersion = "4.12.0"
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

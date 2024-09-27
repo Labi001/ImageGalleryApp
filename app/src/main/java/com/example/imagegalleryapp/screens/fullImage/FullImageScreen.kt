@@ -1,5 +1,6 @@
 package com.example.imagegalleryapp.screens.fullImage
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -32,8 +33,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -49,6 +54,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -57,34 +63,68 @@ import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import com.example.imagegalleryapp.R
+import com.example.imagegalleryapp.components.DownloadOptionsBottomSheet
+import com.example.imagegalleryapp.components.ImageDownloadOptions
 import com.example.imagegalleryapp.components.ImageLoadingBar
 import com.example.imagegalleryapp.models.UnsplashImage
 import com.example.imagegalleryapp.navigtion.Routes
+import com.example.imagegalleryapp.utils.SnackBarEvent
 import com.example.imagegalleryapp.utils.rememberWindowInsetsController
 import com.example.imagegalleryapp.utils.toggleStatusBar
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlin.math.max
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun FullImageScreen(
+    snackbarHostState: SnackbarHostState,
+    snackBarEvent: Flow<SnackBarEvent>,
     image: UnsplashImage?,
     navController: NavController,
+    onImageDownloadClick: (String,String?) -> Unit,
     ){
 
+    val context = LocalContext.current
     var showBars by rememberSaveable { mutableStateOf(false) }
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
     val scope = rememberCoroutineScope()
 
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var isDownloadBottomSheetOpen by remember { mutableStateOf(false) }
+
     val windowInsetsController = rememberWindowInsetsController()
 
-    Scaffold(modifier = Modifier.fillMaxSize(),
+    LaunchedEffect(key1 = true) {
+
+        snackBarEvent.collect{ event->
+
+          snackbarHostState.showSnackbar(
+              message = event.message,
+              duration = event.duration
+          )
+
+        }
+
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState,
+            snackbar = {
+                Snackbar(snackbarData = it,
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
+            })},
+        modifier = Modifier.fillMaxSize(),
         topBar = {
 
             FullImageViewTopAppBar(
                 image = image,
-                onDownloadImgClick = {},
+                onDownloadImgClick = {
+
+                    isDownloadBottomSheetOpen = true
+                },
                 onPhotographerImgClick = { profileImgLink ->
 
                     navController.navigate(Routes.ProfileScreen(
@@ -123,6 +163,35 @@ fun FullImageScreen(
                 navController.navigateUp()
 
             }
+            
+            DownloadOptionsBottomSheet(
+                onOptionClick = { option ->
+
+                    scope.launch {
+
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+
+                        if(!sheetState.isVisible) isDownloadBottomSheetOpen = false
+
+                    }
+
+                    val url = when(option){
+                        ImageDownloadOptions.SMALL -> image?.imageUrlSmall
+                        ImageDownloadOptions.MEDIUM -> image?.imageUrlRegular
+                        ImageDownloadOptions.ORIGINAL -> image?.imageUrlRaw
+                    }
+
+                    url?.let {
+
+                        onImageDownloadClick(it,image?.description?.take(20))
+                        Toast.makeText(context,"Downloading...",Toast.LENGTH_SHORT).show()
+                    }
+
+                },
+                isOpen = isDownloadBottomSheetOpen,
+                sheetState = sheetState,
+                onDismissRequest = { isDownloadBottomSheetOpen = false })
 
             val isImageZoomed: Boolean by remember {
                 derivedStateOf { scale != 1f }
@@ -177,6 +246,7 @@ fun FullImageScreen(
                     contentDescription = null,
                     modifier = Modifier
                         .transformable(transformState)
+                        .fillMaxSize()
                         .combinedClickable(
                             onDoubleClick = {
 
@@ -304,7 +374,9 @@ fun FullImageViewTopAppBar(
 
             actions = {
 
-                IconButton(onClick = { onDownloadImgClick() }) {
+
+                IconButton(
+                    onClick = { onDownloadImgClick() }) {
 
                     Icon(painter = painterResource(id = R.drawable.ic_download),
                         contentDescription = null)
